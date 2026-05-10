@@ -1,0 +1,106 @@
+html {
+  scroll-behavior: smooth;
+}
+
+@font-face {
+  font-family: 'Coral Pixels';
+  src: url('CoralPixels-Regular.ttf') format('truetype');
+}
+
+body {
+  margin: 0;
+  font-family: 'Coral Pixels', sans-serif;
+}
+
+.hero {
+  position: relative;       /* anchor for absolutely-positioned children */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+}
+
+.hero a {
+  position: absolute;       /* pulled out of flex flow */
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: grey;              /* text + underline color */
+  text-decoration: none;    /* hide the underline */
+}
+
+h1 {
+  font-size: 48px;   /* default ~32px × 1.5 */
+}
+
+h1, .input-container {
+  transform: translateY(-25px);
+}
+#more h2 {
+  text-align: center;
+}
+#cursor {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: url('cursor.png') no-repeat center / contain;
+  filter: brightness(0) saturate(100%) invert(57%) sepia(60%) saturate(490%) hue-rotate(326deg) brightness(96%) contrast(88%);
+  image-rendering: pixelated;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+}
+
+/* From Uiverse.io by eslam-hany */
+.input-container {
+  position: relative;
+}
+
+.input {
+  padding: 8px;
+  height: 30px;
+  border: 2px solid black;
+  border-top: none;
+  border-bottom: none;
+  font-size: 12px;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+}
+
+.label {
+  position: absolute;
+  top: -15px;
+  left: 15px;
+  color: #0B2447;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.input-container .topline {
+  position: absolute;
+  content: "";
+  background-color: black;
+  width: 35%;
+  height: 2px;
+  right: 0;
+  top: 0;
+}
+
+.input-container .underline {
+  position: absolute;
+  content: "";
+  background-color: black;
+  width: 100%;
+  height: 2px;
+  right: 0;
+  bottom: 0;
+}
+
+#more {
+  display: none;        /* hidden until "Learn more" is clicked */
+  min-height: 100vh;
+  padding: 40px;
+}

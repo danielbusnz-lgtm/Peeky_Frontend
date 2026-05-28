@@ -2,6 +2,9 @@
   "name": "countdown-aegis",
   "private": true,
   "type": "module",
+  "scripts": {
+    "emails": "node scripts/emails.mjs"
+  },
   "dependencies": {
     "@upstash/redis": "^1.34.3"
   }

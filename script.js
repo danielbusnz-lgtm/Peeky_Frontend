@@ -1,16 +1,18 @@
-const futureDate = new Date();
-futureDate.setDate(futureDate.getDate() + 30);
+// Fixed launch target, the same for every visitor. Counting to a hardcoded
+// instant (not "now + 30 days" per load) is what makes the countdown real.
+const LAUNCH = new Date("2026-06-27T20:28:31Z");
 
 function updateCountdown() {
-    const now = new Date();
-    const diffInMs = futureDate - now;
+    // Clamp at zero so the timer stops at 0 0:00:00 instead of going negative.
+    const diffInMs = Math.max(0, LAUNCH - new Date());
 
     const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffInMs / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((diffInMs / (1000 * 60)) % 60);
     const seconds = Math.floor((diffInMs / 1000) % 60);
 
-    const time = `${days} ${hours}:${minutes}:${seconds}`;
+    const pad = (n) => String(n).padStart(2, "0");
+    const time = `${days} ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
     document.getElementById("countdown").textContent = time;
 }
 
@@ -35,10 +37,30 @@ function animate() {
 }
 animate();
 
-document.querySelector('a[href="#more"]').addEventListener('click', (e) => {
-  e.preventDefault();
-  e.currentTarget.style.display = 'none';   // hide the link itself
-  const more = document.getElementById('more');
-  more.style.display = 'block';
-  more.scrollIntoView({ behavior: 'smooth' });
+// Submit the email on Enter. Posts to the Vercel function, which stores it.
+const emailInput = document.querySelector('.input');
+const emailLabel = document.querySelector('.label');
+
+emailInput.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const email = emailInput.value.trim();
+  if (!email || !emailInput.checkValidity()) {
+    emailLabel.textContent = 'Enter a valid email';
+    return;
+  }
+
+  emailInput.disabled = true;
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    emailInput.value = '';
+    emailLabel.textContent = "You're on the list";
+  } catch {
+    emailInput.disabled = false;
+    emailLabel.textContent = 'Something went wrong, try again';
+  }
 });

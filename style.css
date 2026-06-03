@@ -119,4 +119,11 @@ h1, .input-container {
   border: 2px solid black;
   color: black;
   font-size: 14px;
+  transition: transform 90ms ease;
+}
+
+/* Press feedback: squish in slightly while held. Keeps the -25px shift so it
+   doesn't jump out of place. */
+.hero a.download:active {
+  transform: translateY(-25px) scale(0.96);
 }

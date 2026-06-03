@@ -115,9 +115,9 @@ h1, .input-container {
   border: 2px solid black;
   color: black;
   font-size: 14px;
+  transition: transform 120ms ease;
 }
 
 .hero a.download:hover {
-  background: black;
-  color: white;
+  transform: translateY(-2px);
 }

@@ -104,3 +104,20 @@ h1, .input-container {
   min-height: 100vh;
   padding: 40px;
 }
+
+/* Download button. More specific than `.hero a` so it isn't pulled to the
+   bottom and greyed out. */
+.hero a.download {
+  position: static;
+  transform: none;
+  margin-top: 28px;
+  padding: 10px 22px;
+  border: 2px solid black;
+  color: black;
+  font-size: 14px;
+}
+
+.hero a.download:hover {
+  background: black;
+  color: white;
+}

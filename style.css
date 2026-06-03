@@ -61,6 +61,7 @@ h1, .input-container {
 .input {
   padding: 8px;
   height: 30px;
+  width: 200px;          /* total box ≈ 220px incl. padding + side borders */
   border: 2px solid black;
   border-top: none;
   border-bottom: none;
@@ -109,15 +110,13 @@ h1, .input-container {
    bottom and greyed out. */
 .hero a.download {
   position: static;
-  transform: none;
-  margin-top: 28px;
-  padding: 10px 22px;
+  transform: translateY(-25px);   /* match the upward shift of the input above */
+  margin-top: 16px;
+  box-sizing: border-box;
+  width: 220px;                    /* equal to the email box total width */
+  padding: 10px 0;
+  text-align: center;
   border: 2px solid black;
   color: black;
   font-size: 14px;
-  transition: transform 120ms ease;
-}
-
-.hero a.download:hover {
-  transform: translateY(-2px);
 }

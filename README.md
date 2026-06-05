@@ -3,7 +3,7 @@
 The landing page for [Peeky](https://github.com/danielbusnz-lgtm/Peeky), a
 voice-controlled AI cursor for macOS.
 
-Live at **[countdown.si9num.com](https://countdown.si9num.com)**.
+Live at **[getpeeky.ai](https://getpeeky.ai)**.
 
 A simple static page: a hero, a download button, and a few example commands.
 No build step and no framework, just HTML, CSS, and a little JavaScript.

@@ -59,7 +59,7 @@ document.addEventListener('mousemove', (e) => {
 function animate() {
   cursorX += (mouseX - cursorX) * 0.07;
   cursorY += (mouseY - cursorY) * 0.07;
-  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px) rotate(-10deg)`;
+  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px) rotate(-7deg)`;
   requestAnimationFrame(animate);
 }
 animate();

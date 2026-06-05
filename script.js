@@ -48,8 +48,8 @@ let mouseX = -100, mouseY = -100;
 let cursorX = -100, cursorY = -100;
 
 // Offset from the real pointer: positive X moves right, negative Y moves up.
-const OFFSET_X = 0;
-const OFFSET_Y = 0;
+const OFFSET_X = 16;
+const OFFSET_Y = -20;
 
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
@@ -59,7 +59,7 @@ document.addEventListener('mousemove', (e) => {
 function animate() {
   cursorX += (mouseX - cursorX) * 0.07;
   cursorY += (mouseY - cursorY) * 0.07;
-  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px) rotate(-3deg)`;
+  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px) rotate(-1deg)`;
   requestAnimationFrame(animate);
 }
 animate();

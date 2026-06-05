@@ -26,8 +26,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background: url('cursor.svg') no-repeat center / contain;
   pointer-events: none;
   z-index: 50;
@@ -51,7 +51,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #f59e0b; /* amber — ties the brand label to Peeky's orange cursor */
+  color: var(--muted); /* light grey */
   margin: 0 0 14px;
 }
 h1 {
@@ -76,7 +76,9 @@ h1 {
   gap: 10px;
 }
 .btn-primary {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   background: var(--accent);
   color: var(--accent-ink);
   text-decoration: none;

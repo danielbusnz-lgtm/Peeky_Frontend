@@ -1,129 +1,214 @@
-html {
-  scroll-behavior: smooth;
+:root {
+  --bg: #ffffff;
+  --ink: #111418;
+  --muted: #6b7280;
+  --line: #e6e8eb;
+  --accent: #3b5bff;
+  --accent-ink: #ffffff;
+  --radius: 12px;
+  --max: 960px;
 }
 
-@font-face {
-  font-family: 'Coral Pixels';
-  src: url('CoralPixels-Regular.ttf') format('truetype');
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
-  margin: 0;
-  font-family: 'Coral Pixels', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-.hero {
-  position: relative;       /* anchor for absolutely-positioned children */
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1px;
-}
-
-.hero a {
-  position: absolute;       /* pulled out of flex flow */
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: grey;              /* text + underline color */
-  text-decoration: none;    /* hide the underline */
-}
-
-h1 {
-  font-size: 48px;   /* default ~32px × 1.5 */
-}
-
-h1, .input-container {
-  transform: translateY(-25px);
-}
-#more h2 {
-  text-align: center;
-}
+/* trailing orange cursor */
 #cursor {
   position: fixed;
-  width: 6px;
-  height: 6px;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
   background: url('cursor.png') no-repeat center / contain;
   filter: brightness(0) saturate(100%) invert(57%) sepia(60%) saturate(490%) hue-rotate(326deg) brightness(96%) contrast(88%);
   image-rendering: pixelated;
   pointer-events: none;
-  top: 0;
-  left: 0;
+  z-index: 50;
+}
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  #cursor { display: none; }
 }
 
-/* From Uiverse.io by eslam-hany */
-.input-container {
-  position: relative;
-}
+/* layout */
+main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 
-.input {
-  padding: 8px;
-  height: 30px;
-  width: 200px;          /* total box ≈ 220px incl. padding + side borders */
-  border: 2px solid black;
-  border-top: none;
-  border-bottom: none;
-  font-size: 12px;
-  background: transparent;
-  outline: none;
-  font-family: inherit;
-}
-
-.label {
-  position: absolute;
-  top: -15px;
-  left: 15px;
-  color: #0B2447;
-  font-size: 12px;
-  font-family: inherit;
-}
-
-.input-container .topline {
-  position: absolute;
-  content: "";
-  background-color: black;
-  width: 35%;
-  height: 2px;
-  right: 0;
-  top: 0;
-}
-
-.input-container .underline {
-  position: absolute;
-  content: "";
-  background-color: black;
-  width: 100%;
-  height: 2px;
-  right: 0;
-  bottom: 0;
-}
-
-#more {
-  display: none;        /* hidden until "Learn more" is clicked */
-  min-height: 100vh;
-  padding: 40px;
-}
-
-/* Download button. More specific than `.hero a` so it isn't pulled to the
-   bottom and greyed out. */
-.hero a.download {
-  position: static;
-  transform: translateY(-25px);   /* match the upward shift of the input above */
-  margin-top: 16px;
-  box-sizing: border-box;
-  width: 220px;                    /* equal to the email box total width */
-  padding: 10px 0;
+/* hero */
+.hero {
+  padding: 80px 0 96px;
   text-align: center;
-  border: 2px solid black;
-  color: black;
-  font-size: 14px;
-  transition: transform 90ms ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+h1 {
+  font-size: clamp(40px, 7vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 650;
+}
+.lede {
+  max-width: 540px;
+  margin: 24px auto 0;
+  font-size: 18px;
+  color: var(--muted);
 }
 
-/* Press feedback: squish in slightly while held. Keeps the -25px shift so it
-   doesn't jump out of place. */
-.hero a.download:active {
-  transform: translateY(-25px) scale(0.96);
+/* primary action */
+.actions {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.btn-primary {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 14px 28px;
+  border-radius: var(--radius);
+  transition: transform 90ms ease, opacity 120ms ease;
+}
+.btn-primary:hover { opacity: 0.92; }
+.btn-primary:active { transform: scale(0.97); }
+.req { font-size: 13px; color: var(--muted); }
+.free { color: var(--accent); font-weight: 600; }
+.privacy { font-size: 13px; color: var(--ink); font-weight: 500; }
+
+/* waitlist */
+.waitlist { margin-top: 48px; width: 100%; max-width: 420px; }
+.waitlist-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.waitlist-row {
+  display: flex;
+  gap: 8px;
+}
+.email {
+  flex: 1;
+  font: inherit;
+  font-size: 15px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 120ms ease;
+}
+.email:focus { border-color: var(--accent); }
+.btn-ghost {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.btn-ghost:hover { border-color: var(--ink); }
+.form-msg { min-height: 18px; margin-top: 8px; font-size: 13px; color: var(--accent); }
+
+/* examples marquee (full-bleed) */
+.examples {
+  padding: 64px 0 96px;
+  border-top: 1px solid var(--line);
+}
+.examples-kicker {
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted);
+  margin-bottom: 36px;
+}
+.marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee + .marquee { margin-top: 16px; }
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 16px;
+  animation: marquee 70s linear infinite;
+}
+.marquee-rev .marquee-track {
+  animation-direction: reverse;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+.chip {
+  flex: none;
+  white-space: nowrap;
+  font-size: 16px;
+  color: var(--ink);
+  background: #f5f6f8;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 12px 20px;
+}
+.chip::before { content: "“"; color: var(--accent); margin-right: 2px; }
+.chip::after { content: "”"; color: var(--accent); margin-left: 2px; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* footer */
+.foot {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 28px 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--muted);
+}
+.foot a { color: var(--ink); text-decoration: none; }
+.foot a:hover { color: var(--accent); }
+.gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+.gh:hover { border-color: var(--ink); }
+.gh .stars { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 680px) {
+  .features { grid-template-columns: 1fr; gap: 28px; }
+  .hero { padding: 56px 0 72px; }
 }

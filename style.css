@@ -39,7 +39,7 @@ body {
 }
 
 /* layout */
-main { max-width: var(--max); margin: 40 auto; padding: 0 24px; }
+main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
 
 /* hero */
 .hero {

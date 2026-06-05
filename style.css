@@ -51,7 +51,7 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #9ca3af; /* light grey */
+  color: #f59e0b; /* amber — ties the brand label to Peeky's orange cursor */
   margin: 0 0 14px;
 }
 h1 {

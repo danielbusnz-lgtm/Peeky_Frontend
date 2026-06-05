@@ -48,8 +48,8 @@ let mouseX = -100, mouseY = -100;
 let cursorX = -100, cursorY = -100;
 
 // Offset from the real pointer: positive X moves right, negative Y moves up.
-const OFFSET_X = 16;
-const OFFSET_Y = -20;
+const OFFSET_X = 0;
+const OFFSET_Y = 0;
 
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;

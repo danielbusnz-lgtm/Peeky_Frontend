@@ -26,8 +26,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   background: url('cursor.svg') no-repeat center / contain;
   pointer-events: none;
   z-index: 50;

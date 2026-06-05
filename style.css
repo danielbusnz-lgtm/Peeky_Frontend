@@ -39,7 +39,7 @@ body {
 }
 
 /* layout */
-main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+main { max-width: var(--max); margin: 40 auto; padding: 0 24px; }
 
 /* hero */
 .hero {
@@ -48,6 +48,13 @@ main { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.brand {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin: 0 0 14px;
 }
 h1 {
   font-size: clamp(40px, 7vw, 68px);

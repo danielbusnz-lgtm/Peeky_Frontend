@@ -28,9 +28,7 @@ body {
   left: 0;
   width: 16px;
   height: 16px;
-  background: url('cursor.png') no-repeat center / contain;
-  filter: brightness(0) saturate(100%) invert(57%) sepia(60%) saturate(490%) hue-rotate(326deg) brightness(96%) contrast(88%);
-  image-rendering: pixelated;
+  background: url('cursor.svg') no-repeat center / contain;
   pointer-events: none;
   z-index: 50;
 }

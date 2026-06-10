@@ -1,8 +1,3 @@
-// Duplicate each marquee row so the -50% slide loops seamlessly.
-document.querySelectorAll('[data-marquee]').forEach((track) => {
-  track.innerHTML += track.innerHTML;
-});
-
 const form = document.getElementById('waitlist');
 const email = document.getElementById('email');
 const msg = document.getElementById('formMsg');
@@ -47,6 +42,10 @@ const cursor = document.getElementById('cursor');
 let mouseX = -100, mouseY = -100;
 let cursorX = -100, cursorY = -100;
 
+// Offset from the real pointer: positive X moves right, negative Y moves up.
+const OFFSET_X = 16;
+const OFFSET_Y = -20;
+
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
@@ -55,7 +54,7 @@ document.addEventListener('mousemove', (e) => {
 function animate() {
   cursorX += (mouseX - cursorX) * 0.07;
   cursorY += (mouseY - cursorY) * 0.07;
-  cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) rotate(-25deg)`;
+  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px)`;
   requestAnimationFrame(animate);
 }
 animate();

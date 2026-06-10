@@ -1,5 +1,13 @@
 {
   "name": "peeky-frontend",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "^4.3.0"
+  },
+  "scripts": {
+    "build": "tailwindcss -i tailwind.css -o style.css --minify",
+    "watch": "tailwindcss -i tailwind.css -o style.css --watch"
+  }
 }

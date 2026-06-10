@@ -37,6 +37,22 @@ fetch('https://api.github.com/repos/danielbusnz-lgtm/Peeky')
   })
   .catch(() => {});
 
+// Demo video: activates itself once a <source> is dropped into #demo.
+// Plays only while on screen; reduced motion gets a poster + controls instead.
+const demo = document.getElementById('demo');
+if (demo && demo.querySelector('source')) {
+  demo.classList.remove('hidden');
+  document.getElementById('demoPlaceholder')?.remove();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    demo.controls = true;
+  } else {
+    new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) demo.play().catch(() => {});
+      else demo.pause();
+    }, { threshold: 0.4 }).observe(demo);
+  }
+}
+
 // Orange cursor that eases toward the real pointer with a slight lag.
 const cursor = document.getElementById('cursor');
 let mouseX = -100, mouseY = -100;

@@ -1,32 +1,3 @@
-const form = document.getElementById('waitlist');
-const email = document.getElementById('email');
-const msg = document.getElementById('formMsg');
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const value = email.value.trim();
-  if (!value || !email.checkValidity()) {
-    msg.textContent = 'Enter a valid email';
-    return;
-  }
-
-  email.disabled = true;
-  try {
-    const res = await fetch('/api/subscribe', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: value }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    email.value = '';
-    msg.textContent = "You're on the list.";
-  } catch {
-    msg.textContent = 'Something went wrong, try again.';
-  } finally {
-    email.disabled = false;
-  }
-});
-
 // Keep the GitHub star count current.
 fetch('https://api.github.com/repos/danielbusnz-lgtm/Peeky')
   .then((r) => r.ok ? r.json() : null)
@@ -138,6 +109,14 @@ if (demo && demo.querySelector('source')) {
     requestAnimationFrame(loop);
   }
 })();
+
+// Use-case cards: clicking one makes it the active (highlighted) one.
+// Later: also swap the demo recording to match.
+const usecases = document.querySelectorAll('.usecase');
+usecases.forEach((card) => card.addEventListener('click', () => {
+  usecases.forEach((c) => c.classList.remove('active'));
+  card.classList.add('active');
+}));
 
 // Scroll-in reveals: glide .reveal elements in the first time they enter
 // the viewport. CSS handles the motion; this only flips the class.

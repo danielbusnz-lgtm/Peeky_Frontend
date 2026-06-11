@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #3b5bff;
+  --color-accent: #0088ff;
 }
 
 /* keycaps with the kit-image lighting: convex gradient, soft lift, blue glow */
@@ -63,7 +63,7 @@
 .video-frame {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 0 60px -10px rgba(59, 91, 255, 0.35),
+    0 0 60px -10px rgba(0, 136, 255, 0.35),
     0 12px 32px rgba(16, 24, 40, 0.10),
     0 2px 6px rgba(16, 24, 40, 0.06);
 }
@@ -248,55 +248,68 @@
   .fade-in, .swoop-in { animation: none; opacity: 1; transform: none; }
 }
 
-/* accent-tinted matte shadow, lifted from the toggle-demo experiment */
+/* Liquid Glass download button: four layers — tint, backdrop blur,
+   rim lighting, sheen. Hover lightens the tint so the glass "clears". */
 .btn-shadow {
+  position: relative;
+  background: rgba(0, 136, 255, 0.92);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
   box-shadow:
-    0 15px 25px -4px rgba(59, 91, 255, 0.35),
-    inset 0 -3px 4px -1px rgba(0, 0, 0, 0.15),
-    inset 0 2px 3px -1px rgba(255, 255, 255, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  /* glass: translucent fill + frosted backdrop + light gradient sheen */
-  background-color: rgba(59, 91, 255, 0.85);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.btn-shadow:active {
-  box-shadow:
-    0 6px 14px -4px rgba(59, 91, 255, 0.3),
-    inset 0 4px 10px 0 rgba(0, 0, 0, 0.25);
-}
-
-/* raised text inside the download buttons: stacked under-shadows lift the
-   glyphs off the accent surface */
-.btn-shadow span {
-  text-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.3),
-    0 2px 2px rgba(0, 0, 0, 0.25),
-    0 4px 6px rgba(0, 0, 0, 0.15);
-}
-.btn-shadow svg {
-  filter:
-    drop-shadow(0 1px 0 rgba(0, 0, 0, 0.3))
-    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
-}
-
-/* cluely.com's button feel, verbatim: 0.16s ease-out transform, hover
-   grow to 1.03 (desktop only, like theirs), press squash to 0.97 */
-.btn-shadow {
-  transition: transform 0.16s ease-out;
-  /* own GPU layer: children rasterize once and scale with the surface
-     instead of re-snapping to pixels mid-animation */
+    inset 0 1px 1px rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.12),
+    inset 1px 0 1px rgba(255, 255, 255, 0.18),
+    inset -1px 0 1px rgba(255, 255, 255, 0.18),
+    0 12px 32px rgba(0, 136, 255, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
   will-change: transform;
+}
+.btn-shadow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.1) 35%,
+    transparent 55%);
+  pointer-events: none;
+  transition: background 0.25s ease;
+}
+.btn-shadow > * {
+  position: relative;
+}
+.btn-shadow:hover {
+  background-color: rgba(0, 136, 255, 0.84);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.65),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.15),
+    inset 1px 0 1px rgba(255, 255, 255, 0.22),
+    inset -1px 0 1px rgba(255, 255, 255, 0.22),
+    0 16px 40px rgba(0, 136, 255, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.18);
+}
+.btn-shadow:hover::before {
+  background: linear-gradient(120deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.14) 35%,
+    transparent 55%);
 }
 @media (min-width: 768px) {
   .btn-shadow:hover {
-    transform: scale(1.03);
+    transform: scale(1.04);
   }
 }
 .btn-shadow:active {
   transform: scale(0.97);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 3px 8px rgba(0, 0, 0, 0.25),
+    0 6px 14px -4px rgba(0, 136, 255, 0.3);
 }
 
 /* ctrl+space keycaps, ported verbatim from ~/Projects/command-btn-demo */
@@ -307,7 +320,7 @@
   padding: 0;
   width: 100px; /* Smaller width */
   height: 100px; /* Smaller height */
-  border: 2px solid rgba(59, 91, 255, 0.35);
+  border: 2px solid rgba(0, 136, 255, 0.35);
   outline: none;
   background: linear-gradient(180deg, #ffffff 0%, #fafafa 70%, #f1f2f4 100%);
   background-clip: padding-box; /* keep the gradient out of the border zone:
@@ -437,4 +450,71 @@
 .btn-wide .btn-small-text {
   align-self: center;
   font-size: 20px;
+}
+
+/* demo frame and header break out of the 5xl container, same width so
+   the logo edge aligns with the demo edge */
+.demo-breakout {
+  width: min(90vw, 1120px);
+}
+.header-breakout {
+  width: min(90vw, 1120px);
+  max-width: none;
+  padding-inline: 0;
+}
+
+/* section headings: bigger than the stock text-3xl, with a subtle
+   left-to-right glass fade painted through the letters */
+.heading-lg {
+  font-size: 2.25rem;
+  line-height: 1.15;
+  background: linear-gradient(90deg, #030712 0%, rgba(3, 7, 18, 0.68) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (min-width: 40rem) {
+  .heading-lg {
+    font-size: 2.75rem;
+  }
+}
+
+/* footer GitHub pill: accent outline + gold stars on hover */
+.gh-pill:hover {
+  border-color: #0088ff;
+}
+.gh-pill:hover #stars {
+  color: #f59e0b;
+}
+
+/* use-case cards: clue-card material as slim clickable strips; active one
+   gets the keycap-style translucent accent border + glow */
+.usecase {
+  cursor: pointer;
+  padding: 14px 20px;
+  border: 2px solid transparent;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.usecase.active {
+  border-color: rgba(0, 136, 255, 0.35);
+  box-shadow:
+    0 0 28px rgba(0, 136, 255, 0.16),
+    0 12px 32px rgba(16, 24, 40, 0.10),
+    0 2px 6px rgba(16, 24, 40, 0.06);
+}
+
+/* use-case section spans the full viewport width regardless of the
+   centered container it sits in; clips the screenshot's right bleed */
+.full-bleed {
+  width: 100vw;
+  overflow: hidden;
+  /* room for the screenshot drop shadow, which the overflow clip
+     would otherwise cut off at the flush bottom edge */
+  padding-bottom: 48px;
+  margin-bottom: -48px;
+}
+/* the 100vw trick can overshoot by a scrollbar's width; never show a
+   horizontal scrollbar because of it */
+body {
+  overflow-x: clip;
 }

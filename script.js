@@ -139,6 +139,18 @@ if (demo && demo.querySelector('source')) {
   }
 })();
 
+// Scroll-in reveals: glide .reveal elements in the first time they enter
+// the viewport. CSS handles the motion; this only flips the class.
+const revealObserver = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      revealObserver.unobserve(entry.target);
+    }
+  }
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+
 // Orange cursor that eases toward the real pointer with a slight lag.
 const cursor = document.getElementById('cursor');
 let mouseX = -100, mouseY = -100;

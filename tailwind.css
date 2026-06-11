@@ -36,6 +36,13 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(147, 197, 253, 0.04));
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
+/* fade the rings out toward the bottom, like the old white overlay but
+   background-independent */
+.ripple-fade {
+  mask-image: linear-gradient(to top, transparent, black 28%);
+  -webkit-mask-image: linear-gradient(to top, transparent, black 28%);
+}
+
 /* the privacy-card neumorphic button look, scaled to badge size */
 .badge {
   display: flex;
@@ -55,7 +62,8 @@
 }
 .video-frame {
   box-shadow:
-    0 0 36px rgba(59, 130, 246, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 0 60px -10px rgba(59, 91, 255, 0.35),
     0 12px 32px rgba(16, 24, 40, 0.10),
     0 2px 6px rgba(16, 24, 40, 0.06);
 }
@@ -122,18 +130,36 @@
   top: 50%;
 }
 
-/* trailing orange cursor, easier as plain CSS than utilities */
+/* trailing orange cursor, easier as plain CSS than utilities. Starts life
+   as the headline's period (a 12px dot clipped from this square), morphs
+   into the cursor silhouette via the clip-path transition, then script.js
+   swaps in the real svg and it flies. */
 #cursor {
   position: fixed;
   top: 0;
   left: 0;
-  width: 10px;
-  height: 10px;
-  background: url('cursor.svg') no-repeat center / contain;
+  width: 12px;
+  height: 12px;
+  background: #fd8a02;
   pointer-events: none;
   z-index: 50;
+  opacity: 0;
+  transition: clip-path 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* the real period glyph rises with "talking" inside the word mask; once the
+   word lands, script.js swaps it for #cursor in place (instant, so no gap) */
+.cursor-period {
+  color: #fd8a02;
+}
+/* cancel the period's advance so the headline centers as if it isn't there
+   (it leaves with the cursor anyway). On the mask, not the glyph: inside
+   the mask a negative margin shrinks its box and overflow:hidden clips the
+   period away. */
+.word-mask:has(.cursor-period) {
+  margin-right: -0.3em;
 }
 @media (prefers-reduced-motion: reduce), (hover: none) {
+  /* no cursor sprite on touch/reduced motion; the real period stays */
   #cursor { display: none; }
 }
 
@@ -380,6 +406,26 @@
 }
 .btn-wide {
   width: 380px;
+}
+
+/* Cluely-style bento card: soft radial wash + glass sheen overlay */
+.clue-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 28px;
+  background: radial-gradient(92.09% 124.47% at 50% 99.24%,
+              rgba(221, 226, 238, 0.4) 58.91%,
+              rgba(187, 197, 221, 0.4) 100%);
+}
+.sheen {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 1.899px 1.77px 8.174px 0 rgba(168, 197, 255, 0.25) inset,
+              1.007px 0.939px 4.087px 0 rgba(168, 197, 255, 0.25) inset;
 }
 
 /* center the space legend instead of keycap bottom placement */

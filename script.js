@@ -151,24 +151,138 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
 
-// Orange cursor that eases toward the real pointer with a slight lag.
+// The headline's period is the cursor at rest. The real glyph only reserves
+// layout space; #cursor, a 12px orange dot pinned to its spot every frame,
+// plays the period. At 3s it morphs into the cursor silhouette (clip-path
+// transition in CSS), swaps to the real svg, and flies off to trail the
+// pointer.
 const cursor = document.getElementById('cursor');
-let mouseX = -100, mouseY = -100;
-let cursorX = -100, cursorY = -100;
+const periodDot = document.getElementById('periodDot');
+let mouseX = null, mouseY = null;
+let cursorX = null, cursorY = null;
+let released = false;
 
 // Offset from the real pointer: positive X moves right, negative Y moves up.
 const OFFSET_X = 16;
 const OFFSET_Y = -20;
+
+// Touch and reduced-motion get no cursor sprite (CSS hides it), so the
+// real period glyph stays visible there instead.
+const cursorDisabled = matchMedia('(prefers-reduced-motion: reduce), (hover: none)').matches;
 
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
 });
 
+// Hand-traced cursor.svg silhouette, percent coords of the sprite box.
+const ARROW = [
+  [32.0,78.3],[37.3,90.0],[46.3,86.0],[47.2,83.2],[46.5,81.0],[53.0,78.0],
+  [54.0,75.0],[53.2,72.2],[65.8,66.8],[67.8,70.7],[76.2,67.2],[78.3,71.5],
+  [87.0,68.0],[88.2,65.0],[83.3,54.3],[79.3,56.2],[75.0,47.5],[71.0,49.3],
+  [66.8,40.8],[62.5,42.5],[58.3,34.0],[54.3,35.7],[50.3,27.3],[46.2,28.8],
+  [42.5,21.0],[33.8,24.7],[37.5,33.0],[33.2,35.2],[37.0,43.7],[33.0,45.7],
+  [36.8,54.2],[32.5,56.3],[36.5,64.8],[32.0,67.2],[36.3,75.3],[32.2,77.7],
+];
+
+function toClip(points) {
+  return `polygon(${points.map(([x, y]) => `${x.toFixed(1)}% ${y.toFixed(1)}%`).join(',')})`;
+}
+
+// The circle matches ARROW vertex for vertex: same count, first point
+// aimed at ARROW's first point so the morph doesn't spin, winding matched
+// via signed area so it doesn't fold through itself.
+function signedArea(pts) {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+    a += x1 * y2 - x2 * y1;
+  }
+  return a;
+}
+
+function circlePoints(n) {
+  const start = Math.atan2(ARROW[0][1] - 50, ARROW[0][0] - 50);
+  const dir = Math.sign(signedArea(ARROW)) || 1;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const a = start + dir * (i / n) * Math.PI * 2;
+    out.push([50 + 50 * Math.cos(a), 50 + 50 * Math.sin(a)]);
+  }
+  return out;
+}
+
+cursor.style.clipPath = toClip(circlePoints(ARROW.length));
+
+// Sequence: the real period glyph rises with "talking" inside the word
+// mask; the moment that animation ends, the dot takes its place (same spot,
+// instant, so the swap is invisible). It morphs at 3s over the CSS
+// transition's 2s, then takes off.
+// The span rect covers the whole line box, not the period's ink, so the dot
+// is sized and offset from real glyph metrics: canvas measureText gives the
+// ink box, a 0x0 inline probe gives the baseline.
+let dotDX = 0, dotDY = 0;
+
+function calibrate() {
+  const r = periodDot.getBoundingClientRect();
+  const probe = document.createElement('span');
+  probe.style.cssText = 'display:inline-block;width:0;height:0';
+  periodDot.parentElement.insertBefore(probe, periodDot);
+  const baseline = probe.getBoundingClientRect().bottom;
+  probe.remove();
+  const cs = getComputedStyle(periodDot);
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const m = ctx.measureText('.');
+  const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  // a hair under the ink box: the glyph isn't a perfect circle and the
+  // solid orange disc reads slightly bolder than the rendered period
+  const size = Math.min(inkW, inkH) * 0.92;
+  cursor.style.width = `${size}px`;
+  cursor.style.height = `${size}px`;
+  // center the disc inside the ink box
+  dotDX = -m.actualBoundingBoxLeft + (inkW - size) / 2;
+  dotDY = baseline - m.actualBoundingBoxAscent - r.top + (inkH - size) / 2;
+}
+
+if (!cursorDisabled) {
+  periodDot.closest('.word-in').addEventListener('animationend', () => {
+    calibrate();
+    periodDot.style.visibility = 'hidden';
+    cursor.style.opacity = '1';
+    cursor.style.clipPath = toClip(ARROW); // morph starts the moment it spawns
+    // take off while the morph's slow tail finishes in flight (transform
+    // and clip-path animate independently)
+    setTimeout(() => { released = true; }, 1300);
+    setTimeout(() => {
+      // silhouettes align now: swap the flat fill for the real svg so the
+      // two-tone shading appears
+      cursor.style.background = "url('cursor.svg') no-repeat center / contain";
+      cursor.style.clipPath = 'none';
+    }, 2050);
+  }, { once: true });
+}
+
+// Where the dot sits while parked: the calibrated ink-box offset from the
+// glyph's rect, recomputed every frame so scroll never desyncs it.
+function periodSpot() {
+  const r = periodDot.getBoundingClientRect();
+  return [r.left + dotDX, r.top + dotDY];
+}
+
 function animate() {
-  cursorX += (mouseX - cursorX) * 0.07;
-  cursorY += (mouseY - cursorY) * 0.07;
-  cursor.style.transform = `translate(${cursorX + OFFSET_X}px, ${cursorY + OFFSET_Y}px)`;
+  if (released) {
+    // No mousemove yet means the pointer position is unknowable; head for
+    // the viewport center until a real position comes in.
+    const tx = (mouseX ?? innerWidth / 2) + OFFSET_X;
+    const ty = (mouseY ?? innerHeight / 2) + OFFSET_Y;
+    cursorX += (tx - cursorX) * 0.07;
+    cursorY += (ty - cursorY) * 0.07;
+  } else {
+    [cursorX, cursorY] = periodSpot();
+  }
+  cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
   requestAnimationFrame(animate);
 }
 animate();

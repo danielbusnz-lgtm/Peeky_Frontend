@@ -23,32 +23,91 @@ if (demo && demo.querySelector('source')) {
     }, { threshold: 0.4 }).observe(demo);
   }
 
-  // Captions, keyed to the video's currentTime and rendered every frame.
-  // Times are in PADDED-video seconds (the clip starts after a 1.5s idle
-  // freeze), measured frame-by-frame in mpv. who: 'user' = spoken command
-  // (neutral pill), 'peeky' = its reply (blue, led by the cursor mark).
-  // thinkAt = when the thinking dots appear ahead of a reply.
-  const CAPTIONS = [
-    { start: 2.45,  end: 4.5,   who: 'user',  text: 'Can you open up my lease agreement?' },
-    { start: 5.18,  end: 7.1,   who: 'peeky', text: 'Opening it up now', thinkAt: 4.5 },
-    { start: 7.2,   end: 9.4,   who: 'user',  text: "What's the monthly rent?" },
-    { start: 10.28, end: 12.73, who: 'peeky', text: "Found it, it's $2,450 a month", thinkAt: 9.4 },
-    { start: 12.83, end: 15.14, who: 'user',  text: 'Is there a section about pets?' },
-    { start: 16.1,  end: 17.3,  who: 'peeky', text: 'Yes, right here', thinkAt: 15.14 },
-  ];
+  // Hero captions, keyed to the video's currentTime and rendered every
+  // frame. Times are in PADDED-video seconds (the clip starts after a 1.5s
+  // idle freeze), measured frame-by-frame in mpv. who: 'user' = spoken
+  // command (neutral pill), 'peeky' = its reply (blue, led by the cursor
+  // mark). thinkAt = when the thinking dots appear ahead of a reply.
+  attachCaptionPill(
+    demo,
+    document.getElementById('demoCaption'),
+    document.getElementById('demoMeasure'),
+    [
+      { start: 2.45,  end: 4.5,   who: 'user',  text: 'Can you open up my lease agreement?' },
+      { start: 5.18,  end: 7.1,   who: 'peeky', text: 'Opening it up now', thinkAt: 4.5 },
+      { start: 7.2,   end: 9.4,   who: 'user',  text: "What's the monthly rent?" },
+      { start: 10.28, end: 12.73, who: 'peeky', text: "Found it, it's $2,450 a month", thinkAt: 9.4 },
+      { start: 12.83, end: 15.14, who: 'user',  text: 'Is there a section about pets?' },
+      { start: 16.1,  end: 17.3,  who: 'peeky', text: 'Yes, right here', thinkAt: 15.14 },
+    ]
+  );
+}
+
+// Use-case cards: each demo video gets the same caption pill, sized down
+// by .demo-caption--sm. Direct video time — these clips have no freeze pad.
+attachCaptionPill(
+  document.getElementById('momDemo'),
+  document.getElementById('momCaption'),
+  document.getElementById('momMeasure'),
+  [
+    { start: 0.6,  end: 3.28, who: 'user',  text: 'Make a note to remind me to call mom at 9pm' },
+    { start: 4.91, end: 9.7,  who: 'peeky', text: "Sure, I'll write that down", thinkAt: 3.29 },
+  ]
+);
+attachCaptionPill(
+  document.getElementById('numbersDemo'),
+  document.getElementById('numbersCaption'),
+  document.getElementById('numbersMeasure'),
+  [
+    { start: 0.86, end: 2.73, who: 'user',  text: 'Which button adds a new sheet?' },
+    { start: 3.68, end: 5.56, who: 'peeky', text: 'This one, up top', thinkAt: 2.74 },
+  ]
+);
+attachCaptionPill(
+  document.getElementById('newsDemo'),
+  document.getElementById('newsCaption'),
+  document.getElementById('newsMeasure'),
+  [
+    { start: 1.33, end: 3.97, who: 'user',  text: 'Can you pull up recent news for me?' },
+    { start: 5.8,  end: 6.9,  who: 'peeky', text: 'Sure, here you go', thinkAt: 3.98 },
+  ]
+);
+
+// Card switching: clicking a use-case card shows its demo slide and restarts
+// the clip. Only cards with a data-demo participate; the rest are inert.
+(() => {
+  const cards = document.querySelectorAll('.usecase[data-demo]');
+  const slides = document.querySelectorAll('.usecase-slide');
+  if (!cards.length || !slides.length) return;
+  function show(name) {
+    slides.forEach((s) => {
+      const on = s.dataset.demo === name;
+      s.classList.toggle('is-active', on);
+      const v = s.querySelector('video');
+      if (!v) return;
+      if (on) { v.currentTime = 0; v.play().catch(() => {}); }
+      else { v.pause(); }
+    });
+    cards.forEach((c) => c.classList.toggle('active', c.dataset.demo === name));
+  }
+  cards.forEach((c) => c.addEventListener('click', () => show(c.dataset.demo)));
+})();
+
+// The liquid-glass caption pill renderer: drives one pill (capEl) over one
+// video, measuring target width with a hidden twin (measurer) and rendering
+// per-frame. Safe to call with missing elements; it just does nothing.
+function attachCaptionPill(video, capEl, measurer, captions) {
   // Replies show thinking dots from thinkFrom until their start time. A
   // measured thinkAt wins; otherwise dots fill the gap after the previous
   // caption, at most 0.6s before the reply.
-  CAPTIONS.forEach((c, i) => {
-    const prevEnd = i > 0 ? CAPTIONS[i - 1].end : 0;
+  captions.forEach((c, i) => {
+    const prevEnd = i > 0 ? captions[i - 1].end : 0;
     c.thinkFrom = c.who === 'peeky'
       ? (c.thinkAt !== undefined ? c.thinkAt : Math.max(prevEnd + 0.05, c.start - 0.6))
       : null;
   });
 
-  const capEl = document.getElementById('demoCaption');
-  const measurer = document.getElementById('demoMeasure');
-  if (capEl && measurer) {
+  if (video && capEl && measurer) {
     const contentEl = capEl.querySelector('.glass-content');
     const measureContent = measurer.querySelector('.glass-content');
     // Peeky's replies lead with the orange cursor mark. Commands are plain.
@@ -64,6 +123,7 @@ if (demo && demo.querySelector('source')) {
     let presence = 0;       // 0 = gone, 1 = fully materialized
     let lastActiveAt = -1;
     let lastTs = null;
+    let lastT = null;       // previous frame's video time, to detect rewinds
 
     // Width spring, slightly underdamped (critical damping for k=300 is
     // ~34.6) so the bubble overshoots a few percent and feels like gel.
@@ -75,11 +135,27 @@ if (demo && demo.querySelector('source')) {
     function captionFrame(ts) {
       const dt = Math.min(lastTs === null ? 0 : (ts - lastTs) / 1000, 0.05);
       lastTs = ts;
-      const t = demo.currentTime;
+      const t = video.currentTime;
+
+      // The video clock jumped backwards: a card switch rewound the clip,
+      // or the loop wrapped. Kill the pill instantly and forget all state —
+      // otherwise the previous run's caption lingers (squeezed to a sliver
+      // by the hidden slide's zero-width measurer) while the new run starts.
+      if (lastT !== null && t < lastT - 0.4) {
+        lastKey = null;
+        lastShown = 0;
+        mode = null;
+        measureCache = '';
+        curW = null;
+        velW = 0;
+        presence = 0;
+        lastActiveAt = -1;
+      }
+      lastT = t;
 
       // A reply becomes active early, at thinkFrom, so dots can occupy the
       // gap between the question and the answer.
-      const active = CAPTIONS.find(
+      const active = captions.find(
         (c) => t >= (c.thinkFrom !== null ? c.thinkFrom : c.start) && t < c.end
       );
 

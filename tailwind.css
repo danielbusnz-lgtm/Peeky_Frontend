@@ -623,6 +623,23 @@ body {
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
   40%      { opacity: 0.95; transform: scale(1.1); }
 }
+/* Use-case cards: the pill scales with the card, not the viewport. The
+   wrapper is a size container so cqw units track the video's width. */
+.usecase-demo {
+  container-type: inline-size;
+}
+/* One slide (video + its caption) shows at a time; cards switch them. */
+.usecase-slide {
+  display: none;
+  position: relative;
+}
+.usecase-slide.is-active {
+  display: block;
+}
+.demo-caption--sm {
+  font-size: clamp(11px, 3.6cqw, 16px);
+  top: 5%;
+}
 /* Hidden twin used to measure the pill's target width each frame. */
 .demo-caption.measure {
   visibility: hidden !important;

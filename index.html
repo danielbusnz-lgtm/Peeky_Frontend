@@ -179,7 +179,7 @@
           </div>
           <dl class="mt-10 max-w-xl space-y-4 text-base/7 text-gray-600 lg:max-w-none">
 
-              <div class="usecase clue-card active rounded-lg">
+              <div class="usecase clue-card active rounded-lg" data-demo="mom">
                 <div class="sheen" aria-hidden="true"></div>
                 <div class="relative z-10">
                   <dt class="inline font-semibold text-gray-950">"Make a note to call my mom at 9pm."</dt>
@@ -187,26 +187,63 @@
                 </div>
               </div>
 
-              <div class="usecase clue-card rounded-lg">
+              <div class="usecase clue-card rounded-lg" data-demo="numbers">
                 <div class="sheen" aria-hidden="true"></div>
                 <div class="relative z-10">
-                  <dt class="inline font-semibold text-gray-950">"Find that PDF I downloaded last week about the lease."</dt>
-                  <dd class="inline">Peeky digs it up and opens it, no folder hunting.</dd>
+                  <dt class="inline font-semibold text-gray-950">"Which button adds a new sheet?"</dt>
+                  <dd class="inline">Peeky's cursor flies straight to it and shows you, no clicking around.</dd>
                 </div>
               </div>
 
-              <div class="usecase clue-card rounded-lg">
+              <div class="usecase clue-card rounded-lg" data-demo="news">
                 <div class="sheen" aria-hidden="true"></div>
                 <div class="relative z-10">
-                  <dt class="inline font-semibold text-gray-950">"Export this as PNG at 2x."</dt>
-                  <dd class="inline">Peeky finds the menu and clicks it for you, in apps you barely know.</dd>
+                  <dt class="inline font-semibold text-gray-950">"Can you pull up recent news for me?"</dt>
+                  <dd class="inline">Peeky opens it up for you, no searching around.</dd>
                 </div>
               </div>
 
             </dl>
         </div>
         <div class="sm:px-6 lg:px-0">
-          <video src="usecase-mom.mp4" poster="usecase-mom-poster.jpg" class="w-full rounded-2xl bg-gray-800 shadow-xl ring-1 ring-gray-400/10" muted loop autoplay playsinline preload="metadata"></video>
+          <div class="usecase-demo relative">
+            <div class="usecase-slide is-active" data-demo="mom">
+              <video id="momDemo" src="usecase-mom.mp4" poster="usecase-mom-poster.jpg" class="w-full rounded-2xl bg-gray-800 shadow-xl ring-1 ring-gray-400/10" muted loop autoplay playsinline preload="metadata"></video>
+              <div id="momCaption" class="demo-caption demo-caption--sm" aria-hidden="true">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content"></div>
+              </div>
+              <div id="momMeasure" class="demo-caption demo-caption--sm measure" aria-hidden="true">
+                <div class="glass-content"></div>
+              </div>
+            </div>
+            <div class="usecase-slide" data-demo="numbers">
+              <video id="numbersDemo" src="usecase-numbers.mp4" poster="usecase-numbers-poster.jpg" class="w-full rounded-2xl bg-gray-800 shadow-xl ring-1 ring-gray-400/10" muted loop playsinline preload="metadata"></video>
+              <div id="numbersCaption" class="demo-caption demo-caption--sm" aria-hidden="true">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content"></div>
+              </div>
+              <div id="numbersMeasure" class="demo-caption demo-caption--sm measure" aria-hidden="true">
+                <div class="glass-content"></div>
+              </div>
+            </div>
+            <div class="usecase-slide" data-demo="news">
+              <video id="newsDemo" src="usecase-news.mp4" poster="usecase-news-poster.jpg" class="w-full rounded-2xl bg-gray-800 shadow-xl ring-1 ring-gray-400/10" muted loop playsinline preload="metadata"></video>
+              <div id="newsCaption" class="demo-caption demo-caption--sm" aria-hidden="true">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content"></div>
+              </div>
+              <div id="newsMeasure" class="demo-caption demo-caption--sm measure" aria-hidden="true">
+                <div class="glass-content"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       </div>

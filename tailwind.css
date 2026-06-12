@@ -524,3 +524,52 @@ body {
 .reveal-strong {
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* hero demo captions: a styled overlay over the muted video, driven by
+   currentTime in script.js. One consistent dark-glass pill; the speaker is
+   shown by a leading icon, not by color. Peeky's reply carries the orange
+   cursor mark (orange = Peeky's presence everywhere on the page). */
+.demo-caption {
+  position: absolute;
+  left: 50%;
+  top: 7%;
+  transform: translate(-50%, -8px);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  max-width: 86%;
+  padding: 0.6em 1.1em;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: clamp(13px, 1.9vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.72);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.demo-caption.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+/* Peeky's replies: brand-blue pill plus the orange cursor mark. Commands
+   keep the neutral dark glass above. */
+.demo-caption.peeky {
+  background: rgba(0, 136, 255, 0.92);
+  box-shadow: 0 4px 20px rgba(0, 136, 255, 0.4);
+}
+@media (max-width: 640px) {
+  .demo-caption { font-size: 12px; max-width: 92%; }
+}
+.demo-caption-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+

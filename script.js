@@ -22,6 +22,54 @@ if (demo && demo.querySelector('source')) {
       else demo.pause();
     }, { threshold: 0.4 }).observe(demo);
   }
+
+  // Captions, keyed to the video's currentTime so they repeat each loop.
+  // Edit times (seconds) and text here. who: 'user' = spoken command
+  // (neutral pill), 'peeky' = its reply (brand blue).
+  // Times are in PADDED-video seconds (the clip starts after a 2s idle
+  // freeze). Rent question anchored at 8s per the raw clip's 6s + 2s pad.
+  const CAPTIONS = [
+    { start: 3.0,  end: 5.0,  who: 'user',  text: 'Can you open up my lease agreement?' },
+    { start: 5.1,  end: 6.6,  who: 'peeky', text: 'Opening it up now' },
+    { start: 8.0,  end: 9.8,  who: 'user',  text: "What's the monthly rent?" },
+    { start: 10.0, end: 12.0, who: 'peeky', text: "Found it, it's $2,450 a month" },
+    { start: 12.4, end: 14.0, who: 'user',  text: 'Is there a section about pets?' },
+    { start: 14.2, end: 17.6, who: 'peeky', text: 'Yes, right here' },
+  ];
+  const capEl = document.getElementById('demoCaption');
+  if (capEl) {
+    // Peeky's replies lead with the orange cursor mark. Commands are plain.
+    const peekyIcon = '<img src="cursor.svg" alt="" class="demo-caption-icon">';
+    let shownKey = null;
+    let textSpan = null;
+
+    demo.addEventListener('timeupdate', () => {
+      const t = demo.currentTime;
+      const active = CAPTIONS.find((c) => t >= c.start && t < c.end);
+      if (!active) {
+        capEl.classList.remove('show');
+        return;
+      }
+      const key = active.start + active.text;
+      if (key !== shownKey) {
+        // New caption: rebuild (icon + empty text span) once.
+        capEl.innerHTML =
+          (active.who === 'peeky' ? peekyIcon : '') + '<span></span>';
+        textSpan = capEl.querySelector('span');
+        capEl.classList.toggle('peeky', active.who === 'peeky');
+        shownKey = key;
+      }
+      // Word-by-word reveal over the first ~55% of the window (capped),
+      // so it reads as if the words are being spoken, then holds full text.
+      const words = active.text.split(' ');
+      const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
+      const progress = reveal > 0 ? (t - active.start) / reveal : 1;
+      const shown = Math.max(1, Math.ceil(Math.min(progress, 1) * words.length));
+      const next = words.slice(0, shown).join(' ');
+      if (textSpan && textSpan.textContent !== next) textSpan.textContent = next;
+      capEl.classList.add('show');
+    });
+  }
 }
 
 // Soundwave on the privacy card. Direct port of peeky/src/painter.rs:

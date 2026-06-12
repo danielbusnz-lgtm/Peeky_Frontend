@@ -491,12 +491,12 @@
    gets the keycap-style translucent accent border + glow */
 .usecase {
   cursor: pointer;
-  padding: 14px 20px;
+  padding: 17px 20px;
   border: 2px solid transparent;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .usecase.active {
-  border-color: rgba(0, 136, 255, 0.35);
+  border-color: rgba(0, 136, 255, 0.20);
   box-shadow:
     0 0 28px rgba(0, 136, 255, 0.16),
     0 12px 32px rgba(16, 24, 40, 0.10),
@@ -517,4 +517,10 @@
    horizontal scrollbar because of it */
 body {
   overflow-x: clip;
+}
+
+/* stronger reveal for the marquee sections: longer glide on a
+   fast-start, soft-landing curve (same one the headline words use) */
+.reveal-strong {
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }

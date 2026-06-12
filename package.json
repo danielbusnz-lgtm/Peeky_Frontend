@@ -3,12 +3,15 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@puppeteer/browsers": "^3.0.4",
     "@tailwindcss/cli": "^4.3.0",
     "esbuild": "^0.28.1",
+    "puppeteer-core": "^25.1.0",
     "tailwindcss": "^4.3.0"
   },
   "scripts": {
     "build": "tailwindcss -i tailwind.css -o style.css --minify && esbuild script.js --minify --outfile=script.min.js",
-    "watch": "tailwindcss -i tailwind.css -o style.css --watch"
+    "watch": "tailwindcss -i tailwind.css -o style.css --watch",
+    "perf": "node scripts/loadtest.mjs"
   }
 }

@@ -525,18 +525,21 @@ body {
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* hero demo captions: a styled overlay over the muted video, driven by
-   currentTime in script.js. One consistent dark-glass pill; the speaker is
-   shown by a leading icon, not by color. Peeky's reply carries the orange
-   cursor mark (orange = Peeky's presence everywhere on the page). */
+/* hero demo captions: a liquid-glass pill overlay over the muted video,
+   rendered per-frame in script.js. Four stacked layers — filter (blur +
+   SVG turbulence distortion, defined in index.html, Chromium-only with a
+   graceful blur fallback), overlay (translucent fill), specular (rim
+   highlight), content (icon + words/dots). Presence, width spring, and
+   squash are driven from JS, so no CSS transitions on those here. */
 .demo-caption {
+  --bg-color: rgba(17, 24, 39, 0.6);
+  --highlight: rgba(255, 255, 255, 0.55);
+  --text: #ffffff;
   position: absolute;
   left: 50%;
   top: 7%;
-  transform: translate(-50%, -8px);
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
+  transform: translate(-50%, 0);
+  overflow: hidden;
   max-width: 86%;
   padding: 0.6em 1.1em;
   border-radius: 9999px;
@@ -545,27 +548,97 @@ body {
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  color: #fff;
-  background: rgba(17, 24, 39, 0.72);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  color: var(--text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
   opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  visibility: hidden;
+  will-change: transform, opacity, width;
   pointer-events: none;
 }
-.demo-caption.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.glass-filter,
+.glass-overlay,
+.glass-specular {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
-/* Peeky's replies: brand-blue pill plus the orange cursor mark. Commands
-   keep the neutral dark glass above. */
+.glass-filter {
+  z-index: 1;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  filter: url(#glass-distortion) saturate(120%) brightness(1.15);
+}
+.glass-overlay {
+  z-index: 2;
+  background: var(--bg-color);
+}
+.glass-specular {
+  z-index: 3;
+  box-shadow: inset 1px 1px 1px var(--highlight);
+}
+.glass-content {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: var(--text);
+  will-change: filter;
+}
+/* Peeky's replies: iMessage blue (#0078FE) darkened ~15%, translucent so
+   the glass reads through. Commands keep the neutral dark ink above. */
 .demo-caption.peeky {
-  background: rgba(0, 136, 255, 0.92);
-  box-shadow: 0 4px 20px rgba(0, 136, 255, 0.4);
+  --bg-color: rgba(0, 100, 216, 0.7);
+  --highlight: rgba(255, 255, 255, 0.5);
+}
+/* Streaming words: per-word blur-and-rise. Named cap-word-in because
+   word-in is already the hero headline animation. */
+.glass-content .words { white-space: nowrap; }
+.glass-content .w {
+  display: inline-block;
+  animation: cap-word-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes cap-word-in {
+  from { opacity: 0; filter: blur(6px); transform: translateY(0.35em); }
+  to   { opacity: 1; filter: blur(0);   transform: none; }
+}
+/* Thinking dots: shown between a question and Peeky's reply. */
+.glass-content .dots {
+  display: flex;
+  align-items: center;
+  gap: 0.32em;
+  padding: 0.22em 0.15em;
+}
+.glass-content .dots i {
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 50%;
+  background: currentColor;
+  animation: cap-dot-pulse 1.1s ease-in-out infinite;
+}
+.glass-content .dots i:nth-child(2) { animation-delay: 0.15s; }
+.glass-content .dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes cap-dot-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  40%      { opacity: 0.95; transform: scale(1.1); }
+}
+/* Hidden twin used to measure the pill's target width each frame. */
+.demo-caption.measure {
+  visibility: hidden !important;
+  transition: none !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform: none !important;
+  width: auto !important;
+  max-width: none !important;
 }
 @media (max-width: 640px) {
   .demo-caption { font-size: 12px; max-width: 92%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-content .w { animation: none; }
+  .glass-content .dots i { animation: none; opacity: 0.8; }
 }
 .demo-caption-icon {
   width: 1.05em;

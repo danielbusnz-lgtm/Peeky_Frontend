@@ -23,52 +23,161 @@ if (demo && demo.querySelector('source')) {
     }, { threshold: 0.4 }).observe(demo);
   }
 
-  // Captions, keyed to the video's currentTime so they repeat each loop.
-  // Edit times (seconds) and text here. who: 'user' = spoken command
-  // (neutral pill), 'peeky' = its reply (brand blue).
-  // Times are in PADDED-video seconds (the clip starts after a 2s idle
-  // freeze). Rent question anchored at 8s per the raw clip's 6s + 2s pad.
+  // Captions, keyed to the video's currentTime and rendered every frame.
+  // Times are in PADDED-video seconds (the clip starts after a 1.5s idle
+  // freeze), measured frame-by-frame in mpv. who: 'user' = spoken command
+  // (neutral pill), 'peeky' = its reply (blue, led by the cursor mark).
+  // thinkAt = when the thinking dots appear ahead of a reply.
   const CAPTIONS = [
-    { start: 3.0,  end: 5.0,  who: 'user',  text: 'Can you open up my lease agreement?' },
-    { start: 5.1,  end: 6.6,  who: 'peeky', text: 'Opening it up now' },
-    { start: 8.0,  end: 9.8,  who: 'user',  text: "What's the monthly rent?" },
-    { start: 10.0, end: 12.0, who: 'peeky', text: "Found it, it's $2,450 a month" },
-    { start: 12.4, end: 14.0, who: 'user',  text: 'Is there a section about pets?' },
-    { start: 14.2, end: 17.6, who: 'peeky', text: 'Yes, right here' },
+    { start: 2.45,  end: 4.5,   who: 'user',  text: 'Can you open up my lease agreement?' },
+    { start: 5.18,  end: 7.1,   who: 'peeky', text: 'Opening it up now', thinkAt: 4.5 },
+    { start: 7.2,   end: 9.4,   who: 'user',  text: "What's the monthly rent?" },
+    { start: 10.28, end: 12.73, who: 'peeky', text: "Found it, it's $2,450 a month", thinkAt: 9.4 },
+    { start: 12.83, end: 15.14, who: 'user',  text: 'Is there a section about pets?' },
+    { start: 16.1,  end: 17.3,  who: 'peeky', text: 'Yes, right here', thinkAt: 15.14 },
   ];
+  // Replies show thinking dots from thinkFrom until their start time. A
+  // measured thinkAt wins; otherwise dots fill the gap after the previous
+  // caption, at most 0.6s before the reply.
+  CAPTIONS.forEach((c, i) => {
+    const prevEnd = i > 0 ? CAPTIONS[i - 1].end : 0;
+    c.thinkFrom = c.who === 'peeky'
+      ? (c.thinkAt !== undefined ? c.thinkAt : Math.max(prevEnd + 0.05, c.start - 0.6))
+      : null;
+  });
+
   const capEl = document.getElementById('demoCaption');
-  if (capEl) {
+  const measurer = document.getElementById('demoMeasure');
+  if (capEl && measurer) {
+    const contentEl = capEl.querySelector('.glass-content');
+    const measureContent = measurer.querySelector('.glass-content');
     // Peeky's replies lead with the orange cursor mark. Commands are plain.
     const peekyIcon = '<img src="cursor.svg" alt="" class="demo-caption-icon">';
-    let shownKey = null;
-    let textSpan = null;
 
-    demo.addEventListener('timeupdate', () => {
+    let lastKey = null;
+    let lastShown = 0;
+    let wordsEl = null;
+    let mode = null;        // 'dots' | 'words'
+    let measureCache = '';
+    let curW = null;        // spring position: animated pill width
+    let velW = 0;           // spring velocity (px/s), also drives squash
+    let presence = 0;       // 0 = gone, 1 = fully materialized
+    let lastActiveAt = -1;
+    let lastTs = null;
+
+    // Width spring, slightly underdamped (critical damping for k=300 is
+    // ~34.6) so the bubble overshoots a few percent and feels like gel.
+    const SPRING_K = 300;
+    const SPRING_C = 24;
+
+    // Per-frame rendering instead of the timeupdate event: timeupdate only
+    // fires ~4x/s, which makes word reveal and pill growth feel chunky.
+    function captionFrame(ts) {
+      const dt = Math.min(lastTs === null ? 0 : (ts - lastTs) / 1000, 0.05);
+      lastTs = ts;
       const t = demo.currentTime;
-      const active = CAPTIONS.find((c) => t >= c.start && t < c.end);
-      if (!active) {
-        capEl.classList.remove('show');
-        return;
+
+      // A reply becomes active early, at thinkFrom, so dots can occupy the
+      // gap between the question and the answer.
+      const active = CAPTIONS.find(
+        (c) => t >= (c.thinkFrom !== null ? c.thinkFrom : c.start) && t < c.end
+      );
+
+      if (active) {
+        const key = active.start + active.text;
+        if (key !== lastKey) {
+          lastKey = key;
+          lastShown = 0;
+          mode = null;
+        }
+
+        const thinking = active.thinkFrom !== null && t < active.start;
+        const wantMode = thinking ? 'dots' : 'words';
+        if (mode !== wantMode) {
+          contentEl.innerHTML =
+            (active.who === 'peeky' ? peekyIcon : '') +
+            (wantMode === 'dots'
+              ? '<span class="dots"><i></i><i></i><i></i></span>'
+              : '<span class="words"></span>');
+          wordsEl = contentEl.querySelector('.words');
+          capEl.classList.toggle('peeky', active.who === 'peeky');
+          mode = wantMode;
+        }
+
+        const words = active.text.split(' ');
+        if (!thinking) {
+          // Word-by-word reveal over the first ~55% of the window (capped)
+          // so it reads as spoken; each word is a span so it animates in.
+          const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
+          const progress = reveal > 0 ? (t - active.start) / reveal : 1;
+          const shown = Math.max(
+            1,
+            Math.ceil(Math.min(Math.max(progress, 0), 1) * words.length)
+          );
+          for (let i = lastShown; i < shown; i++) {
+            if (i > 0) wordsEl.appendChild(document.createTextNode(' '));
+            const w = document.createElement('span');
+            w.className = 'w';
+            w.textContent = words[i];
+            wordsEl.appendChild(w);
+          }
+          lastShown = Math.max(lastShown, shown);
+        }
+
+        // Measure the hidden twin, then spring the real pill toward that
+        // width — CSS can't animate width:auto, springing avoids steps.
+        const sig = key + '|' + (thinking ? 'dots' : lastShown);
+        if (sig !== measureCache) {
+          measureContent.innerHTML =
+            (active.who === 'peeky' ? peekyIcon : '') +
+            (thinking
+              ? '<span class="dots"><i></i><i></i><i></i></span>'
+              : '<span class="words">' + words.slice(0, lastShown).join(' ') + '</span>');
+          measureCache = sig;
+        }
+        const targetW = measurer.offsetWidth;
+
+        if (curW === null || presence < 0.4) {
+          // Materializing from nothing: start at size, the scale-up is the
+          // entrance — no width zoom from zero.
+          curW = targetW;
+          velW = 0;
+        } else {
+          const accel = SPRING_K * (targetW - curW) - SPRING_C * velW;
+          velW += accel * dt;
+          curW += velW * dt;
+          if (Math.abs(targetW - curW) < 0.3 && Math.abs(velW) < 8) {
+            curW = targetW;
+            velW = 0;
+          }
+        }
+        capEl.style.width = curW + 'px';
+        lastActiveAt = ts;
       }
-      const key = active.start + active.text;
-      if (key !== shownKey) {
-        // New caption: rebuild (icon + empty text span) once.
-        capEl.innerHTML =
-          (active.who === 'peeky' ? peekyIcon : '') + '<span></span>';
-        textSpan = capEl.querySelector('span');
-        capEl.classList.toggle('peeky', active.who === 'peeky');
-        shownKey = key;
-      }
-      // Word-by-word reveal over the first ~55% of the window (capped),
-      // so it reads as if the words are being spoken, then holds full text.
-      const words = active.text.split(' ');
-      const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
-      const progress = reveal > 0 ? (t - active.start) / reveal : 1;
-      const shown = Math.max(1, Math.ceil(Math.min(progress, 1) * words.length));
-      const next = words.slice(0, shown).join(' ');
-      if (textSpan && textSpan.textContent !== next) textSpan.textContent = next;
-      capEl.classList.add('show');
-    });
+
+      // Presence: materialize in, dissolve out. Held through sub-250ms
+      // gaps so consecutive captions morph instead of blinking.
+      const wantShown = !!active || (lastActiveAt >= 0 && ts - lastActiveAt < 250);
+      const rate = wantShown ? 13 : 9;
+      presence += ((wantShown ? 1 : 0) - presence) * (1 - Math.exp(-rate * dt));
+      if (presence < 0.001) presence = 0;
+      if (presence > 0.999) presence = 1;
+
+      // Condense in from 92% scale with content sharpening; fast width
+      // changes squash the height slightly so the pill feels like gel.
+      const scale = 0.92 + 0.08 * presence;
+      const rise = (1 - presence) * -6;
+      const squash = 1 - Math.min(Math.abs(velW) * 0.00045, 0.07);
+      capEl.style.opacity = presence;
+      capEl.style.visibility = presence > 0.01 ? 'visible' : 'hidden';
+      capEl.style.transform =
+        'translate(-50%, ' + rise + 'px) scale(' + scale + ') scaleY(' + squash + ')';
+      contentEl.style.filter =
+        presence < 1 ? 'blur(' + ((1 - presence) * 5).toFixed(2) + 'px)' : 'none';
+
+      requestAnimationFrame(captionFrame);
+    }
+    requestAnimationFrame(captionFrame);
   }
 }
 

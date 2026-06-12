@@ -48,10 +48,24 @@
       <div class="demo-breakout mt-24 w-full perspective-[800px]">
       <div class="video-frame swoop-in w-full overflow-hidden rounded-2xl bg-black text-left" style="--at: 1.6s">
         <div class="relative aspect-[3320/2160] bg-black">
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+            <filter id="glass-distortion">
+              <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="2" result="noise" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" />
+            </filter>
+          </svg>
           <video id="demo" class="hidden size-full object-cover" muted loop playsinline preload="metadata" poster="demo-poster.jpg">
             <source src="demo.mp4" type="video/mp4">
           </video>
-          <div id="demoCaption" class="demo-caption" aria-hidden="true"></div>
+          <div id="demoCaption" class="demo-caption" aria-hidden="true">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <div class="glass-content"></div>
+          </div>
+          <div id="demoMeasure" class="demo-caption measure" aria-hidden="true">
+            <div class="glass-content"></div>
+          </div>
         </div>
       </div>
       </div>

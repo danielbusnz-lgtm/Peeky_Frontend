@@ -492,11 +492,12 @@
 .usecase {
   cursor: pointer;
   padding: 17px 20px;
-  border: 2px solid transparent;
+  /* faint accent border at rest so the cards read as clickable */
+  border: 2px solid rgba(0, 136, 255, 0.12);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .usecase.active {
-  border-color: rgba(0, 136, 255, 0.20);
+  border-color: rgba(0, 136, 255, 0.6);
   box-shadow:
     0 0 28px rgba(0, 136, 255, 0.16),
     0 12px 32px rgba(16, 24, 40, 0.10),

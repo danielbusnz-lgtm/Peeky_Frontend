@@ -4,10 +4,11 @@
   "type": "module",
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.0",
+    "esbuild": "^0.28.1",
     "tailwindcss": "^4.3.0"
   },
   "scripts": {
-    "build": "tailwindcss -i tailwind.css -o style.css --minify",
+    "build": "tailwindcss -i tailwind.css -o style.css --minify && esbuild script.js --minify --outfile=script.min.js",
     "watch": "tailwindcss -i tailwind.css -o style.css --watch"
   }
 }

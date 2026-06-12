@@ -91,6 +91,20 @@ attachCaptionPill(
     cards.forEach((c) => c.classList.toggle('active', c.dataset.demo === name));
   }
   cards.forEach((c) => c.addEventListener('click', () => show(c.dataset.demo)));
+
+  // Lazy-start: like the hero, the active slide's video only plays while
+  // the stage is on screen. Saves the mom clip's ~570KB on initial load
+  // (no autoplay attribute), and pauses whatever's playing when the
+  // section scrolls away.
+  const stage = document.querySelector('.usecase-demo');
+  if (stage) {
+    new IntersectionObserver(([entry]) => {
+      const v = stage.querySelector('.usecase-slide.is-active video');
+      if (!v) return;
+      if (entry.isIntersecting) v.play().catch(() => {});
+      else v.pause();
+    }, { threshold: 0.3 }).observe(stage);
+  }
 })();
 
 // The liquid-glass caption pill renderer: drives one pill (capEl) over one

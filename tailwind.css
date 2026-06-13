@@ -602,6 +602,22 @@ body {
 .demo-caption.peeky .glass-overlay {
   background: #2f90f8;
 }
+/* Sub-demo replies are the exact grey glass pill, just tinted blue and at
+   the grey pill's size. (The hero's cursor-pinned bubbles stay solid flat,
+   above.) Same selector weight as the solid rules but later in source, so
+   these win for the use-case captions only. */
+.demo-caption--sm.peeky {
+  --bg-color: rgba(28, 112, 214, 0.62);
+  --highlight: rgba(255, 255, 255, 0.55);
+  font-size: clamp(11px, 1.72cqw, 15px);
+}
+.demo-caption--sm.peeky .glass-filter,
+.demo-caption--sm.peeky .glass-specular {
+  display: block;
+}
+.demo-caption--sm.peeky .glass-overlay {
+  background: var(--bg-color);
+}
 /* Streaming words: per-word blur-and-rise. Named cap-word-in because
    word-in is already the hero headline animation. */
 .glass-content .words { white-space: nowrap; }
@@ -647,9 +663,11 @@ body {
   display: block;
 }
 .demo-caption--sm {
-  font-size: clamp(11px, 3.6cqw, 16px);
+  /* Match the hero pill's proportion (22px on a 1280px frame ~= 1.72% of
+     the video) so the two read as the same component at different scales. */
+  font-size: clamp(11px, 1.72cqw, 15px);
   top: auto;
-  bottom: 6%;
+  bottom: 8%;
 }
 /* Hidden twin used to measure the pill's target width each frame. */
 .demo-caption.measure {

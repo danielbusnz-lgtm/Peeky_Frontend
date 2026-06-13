@@ -648,8 +648,8 @@ body {
 }
 .demo-caption--sm {
   font-size: clamp(11px, 3.6cqw, 16px);
-  top: 5%;
-  bottom: auto;
+  top: auto;
+  bottom: 6%;
 }
 /* Hidden twin used to measure the pill's target width each frame. */
 .demo-caption.measure {

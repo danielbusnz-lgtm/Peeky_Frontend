@@ -24,21 +24,22 @@ if (demo && demo.querySelector('source')) {
   }
 
   // Hero captions, keyed to the video's currentTime and rendered every
-  // frame. Times are in PADDED-video seconds (the clip starts after a 1.5s
-  // idle freeze), measured frame-by-frame in mpv. who: 'user' = spoken
-  // command (neutral pill), 'peeky' = its reply (blue, led by the cursor
-  // mark). thinkAt = when the thinking dots appear ahead of a reply.
+  // frame. Times measured frame-by-frame in mpv. who: 'user' = spoken
+  // command (neutral top pill), 'peeky' = its reply (blue, led by the
+  // cursor mark). pos {x,y} % pins a reply as a bubble at Peeky's cursor.
   attachCaptionPill(
     demo,
     document.getElementById('demoCaption'),
     document.getElementById('demoMeasure'),
     [
-      { start: 2.45,  end: 4.5,   who: 'user',  text: 'Can you open up my lease agreement?' },
-      { start: 5.18,  end: 7.1,   who: 'peeky', text: 'Opening it up now', thinkAt: 4.5 },
-      { start: 7.2,   end: 9.4,   who: 'user',  text: "What's the monthly rent?" },
-      { start: 10.28, end: 12.73, who: 'peeky', text: "Found it, it's $2,450 a month", thinkAt: 9.4 },
-      { start: 12.83, end: 15.14, who: 'user',  text: 'Is there a section about pets?' },
-      { start: 16.1,  end: 17.3,  who: 'peeky', text: 'Yes, right here', thinkAt: 15.14 },
+      // Questions: top pill. Replies: thought bubble above-right of Peeky's
+      // cursor (pos = % of frame, measured from the video). No dots; the
+      // recording shows its own loading spinner during the think phase.
+      { start: 2.13,  end: 4.51,  who: 'user',  text: 'Can you open up my lease agreement?' },
+      { start: 6.52,  end: 8.90,  who: 'user',  text: "What's the monthly rent?" },
+      { start: 10.50, end: 13.07, who: 'peeky', text: "It's $2,450", pos: { x: 51, y: 76 } },
+      { start: 14.68, end: 16.89, who: 'user',  text: 'Is there a section about pets?' },
+      { start: 18.50, end: 20.40, who: 'peeky', text: 'Right here', pos: { x: 53, y: 54 } },
     ]
   );
 }
@@ -51,7 +52,7 @@ attachCaptionPill(
   document.getElementById('momMeasure'),
   [
     { start: 0.6,  end: 3.28, who: 'user',  text: 'Make a note to remind me to call mom at 9pm' },
-    { start: 4.91, end: 9.7,  who: 'peeky', text: "Sure, I'll write that down", thinkAt: 3.29 },
+    { start: 4.91, end: 9.7,  who: 'peeky', text: "Sure, I'll write that down" },
   ]
 );
 attachCaptionPill(
@@ -60,7 +61,7 @@ attachCaptionPill(
   document.getElementById('numbersMeasure'),
   [
     { start: 0.86, end: 2.73, who: 'user',  text: 'Which button adds a new sheet?' },
-    { start: 3.68, end: 5.56, who: 'peeky', text: 'This one, up top', thinkAt: 2.74 },
+    { start: 3.68, end: 5.56, who: 'peeky', text: 'This one, up top' },
   ]
 );
 attachCaptionPill(
@@ -69,7 +70,7 @@ attachCaptionPill(
   document.getElementById('newsMeasure'),
   [
     { start: 1.33, end: 3.97, who: 'user',  text: 'Can you pull up recent news for me?' },
-    { start: 5.8,  end: 6.9,  who: 'peeky', text: 'Sure, here you go', thinkAt: 3.98 },
+    { start: 5.8,  end: 6.9,  who: 'peeky', text: 'Sure, here you go' },
   ]
 );
 
@@ -111,21 +112,16 @@ attachCaptionPill(
 // video, measuring target width with a hidden twin (measurer) and rendering
 // per-frame. Safe to call with missing elements; it just does nothing.
 function attachCaptionPill(video, capEl, measurer, captions) {
-  // Replies show thinking dots from thinkFrom until their start time. A
-  // measured thinkAt wins; otherwise dots fill the gap after the previous
-  // caption, at most 0.6s before the reply.
-  captions.forEach((c, i) => {
-    const prevEnd = i > 0 ? captions[i - 1].end : 0;
-    c.thinkFrom = c.who === 'peeky'
-      ? (c.thinkAt !== undefined ? c.thinkAt : Math.max(prevEnd + 0.05, c.start - 0.6))
-      : null;
-  });
+  // No loading-dots phase: every caption (question or reply) just streams
+  // its text in word-by-word at its start time. The recording shows its
+  // own loading spinner during the think gap.
+  captions.forEach((c) => { c.thinkFrom = null; });
 
   if (video && capEl && measurer) {
     const contentEl = capEl.querySelector('.glass-content');
     const measureContent = measurer.querySelector('.glass-content');
-    // Peeky's replies lead with the orange cursor mark. Commands are plain.
-    const peekyIcon = '<img src="cursor.svg" alt="" class="demo-caption-icon">';
+    // No leading icon; the blue pill alone marks a Peeky reply.
+    const peekyIcon = '';
 
     let lastKey = null;
     let lastShown = 0;
@@ -136,7 +132,9 @@ function attachCaptionPill(video, capEl, measurer, captions) {
     let velW = 0;           // spring velocity (px/s), also drives squash
     let presence = 0;       // 0 = gone, 1 = fully materialized
     let lastActiveAt = -1;
+    let lastWho = null;     // who of the last active caption, for exit timing
     let lastTs = null;
+    let curPos = null;      // {x,y} % when the active caption is a cursor bubble
     let lastT = null;       // previous frame's video time, to detect rewinds
 
     // Width spring, slightly underdamped (critical damping for k=300 is
@@ -179,6 +177,18 @@ function attachCaptionPill(video, capEl, measurer, captions) {
           lastKey = key;
           lastShown = 0;
           mode = null;
+          // A reply with a pos becomes a bubble pinned above-right of the
+          // cursor; everything else is the centered top pill.
+          curPos = active.pos || null;
+          if (curPos) {
+            capEl.style.left = curPos.x + '%';
+            capEl.style.top = curPos.y + '%';
+            capEl.style.transformOrigin = 'left bottom';
+          } else {
+            capEl.style.left = '';
+            capEl.style.top = '';
+            capEl.style.transformOrigin = '';
+          }
         }
 
         const thinking = active.thinkFrom !== null && t < active.start;
@@ -196,14 +206,19 @@ function attachCaptionPill(video, capEl, measurer, captions) {
 
         const words = active.text.split(' ');
         if (!thinking) {
-          // Word-by-word reveal over the first ~55% of the window (capped)
-          // so it reads as spoken; each word is a span so it animates in.
-          const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
-          const progress = reveal > 0 ? (t - active.start) / reveal : 1;
-          const shown = Math.max(
-            1,
-            Math.ceil(Math.min(Math.max(progress, 0), 1) * words.length)
-          );
+          // Questions stream word-by-word (reads as spoken). Peeky's replies
+          // pop in all at once.
+          let shown;
+          if (active.who === 'peeky') {
+            shown = words.length;
+          } else {
+            const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
+            const progress = reveal > 0 ? (t - active.start) / reveal : 1;
+            shown = Math.max(
+              1,
+              Math.ceil(Math.min(Math.max(progress, 0), 1) * words.length)
+            );
+          }
           for (let i = lastShown; i < shown; i++) {
             if (i > 0) wordsEl.appendChild(document.createTextNode(' '));
             const w = document.createElement('span');
@@ -243,15 +258,22 @@ function attachCaptionPill(video, capEl, measurer, captions) {
         }
         capEl.style.width = curW + 'px';
         lastActiveAt = ts;
+        lastWho = active.who;
       }
 
-      // Presence: materialize in, dissolve out. Held through sub-250ms
-      // gaps so consecutive captions morph instead of blinking.
-      const wantShown = !!active || (lastActiveAt >= 0 && ts - lastActiveAt < 250);
-      const rate = wantShown ? 13 : 9;
-      presence += ((wantShown ? 1 : 0) - presence) * (1 - Math.exp(-rate * dt));
-      if (presence < 0.001) presence = 0;
-      if (presence > 0.999) presence = 1;
+      // Presence: materialize in, dissolve out. Held through sub-250ms gaps
+      // so consecutive captions morph instead of blinking. Exception: a
+      // Peeky reply bubble cuts out instantly when its window ends (no fade,
+      // no hold) — it just disappears the moment it's done.
+      if (!active && lastWho === 'peeky') {
+        presence = 0;
+      } else {
+        const wantShown = !!active || (lastActiveAt >= 0 && ts - lastActiveAt < 250);
+        const rate = wantShown ? 13 : 9;
+        presence += ((wantShown ? 1 : 0) - presence) * (1 - Math.exp(-rate * dt));
+        if (presence < 0.001) presence = 0;
+        if (presence > 0.999) presence = 1;
+      }
 
       // Condense in from 92% scale with content sharpening; fast width
       // changes squash the height slightly so the pill feels like gel.
@@ -260,8 +282,12 @@ function attachCaptionPill(video, capEl, measurer, captions) {
       const squash = 1 - Math.min(Math.abs(velW) * 0.00045, 0.07);
       capEl.style.opacity = presence;
       capEl.style.visibility = presence > 0.01 ? 'visible' : 'hidden';
-      capEl.style.transform =
-        'translate(-50%, ' + rise + 'px) scale(' + scale + ') scaleY(' + squash + ')';
+      // Top pill centers via translate(-50%); a cursor bubble anchors its
+      // bottom-left at the cursor point and grows up-and-right.
+      const base = curPos
+        ? 'translate(16px, -100%) translateY(' + (rise - 8) + 'px)'
+        : 'translate(-50%, ' + rise + 'px)';
+      capEl.style.transform = base + ' scale(' + scale + ') scaleY(' + squash + ')';
       contentEl.style.filter =
         presence < 1 ? 'blur(' + ((1 - presence) * 5).toFixed(2) + 'px)' : 'none';
 
@@ -497,6 +523,14 @@ function periodSpot() {
   return [r.left + dotDX, r.top + dotDY];
 }
 
+// Hide the trailing cursor while the pointer is over a demo video, so a
+// viewer's own cursor never gets confused with the demo's orange cursor.
+let overDemo = false;
+document.querySelectorAll('.video-frame, .usecase-demo').forEach((el) => {
+  el.addEventListener('pointerenter', () => { overDemo = true; });
+  el.addEventListener('pointerleave', () => { overDemo = false; });
+});
+
 function animate() {
   if (released) {
     // No mousemove yet means the pointer position is unknowable; head for
@@ -509,6 +543,7 @@ function animate() {
     [cursorX, cursorY] = periodSpot();
   }
   cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+  cursor.style.visibility = overDemo ? 'hidden' : 'visible';
   requestAnimationFrame(animate);
 }
 animate();

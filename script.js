@@ -21,6 +21,18 @@ if (demo && demo.querySelector('source')) {
       if (entry.isIntersecting) demo.play().catch(() => {});
       else demo.pause();
     }, { threshold: 0.4 }).observe(demo);
+
+    // Hold on the final result: freeze the frame at 20s for 1s, once per
+    // loop. Re-arms when the video loops back to the start.
+    let frozen = false;
+    demo.addEventListener('timeupdate', () => {
+      if (demo.currentTime < 19) frozen = false;
+      if (!frozen && demo.currentTime >= 20) {
+        frozen = true;
+        demo.pause();
+        setTimeout(() => demo.play().catch(() => {}), 1000);
+      }
+    });
   }
 
   // Hero captions, keyed to the video's currentTime and rendered every
@@ -37,9 +49,9 @@ if (demo && demo.querySelector('source')) {
       // recording shows its own loading spinner during the think phase.
       { start: 2.13,  end: 4.51,  who: 'user',  text: 'Can you open up my lease agreement?' },
       { start: 6.52,  end: 8.90,  who: 'user',  text: "What's the monthly rent?" },
-      { start: 10.50, end: 13.07, who: 'peeky', text: "It's $2,450", pos: { x: 51, y: 76 } },
+      { start: 10.70, end: 13.07, who: 'peeky', text: "It's $2,450", pos: { x: 51, y: 76 }, stream: true },
       { start: 14.68, end: 16.89, who: 'user',  text: 'Is there a section about pets?' },
-      { start: 18.50, end: 20.40, who: 'peeky', text: 'Right here', pos: { x: 53, y: 54 } },
+      { start: 19.20, end: 20.40, who: 'peeky', text: 'Right here', pos: { x: 53, y: 54 }, stream: true },
     ]
   );
 }
@@ -183,10 +195,12 @@ function attachCaptionPill(video, capEl, measurer, captions) {
           if (curPos) {
             capEl.style.left = curPos.x + '%';
             capEl.style.top = curPos.y + '%';
+            capEl.style.bottom = 'auto';
             capEl.style.transformOrigin = 'left bottom';
           } else {
             capEl.style.left = '';
             capEl.style.top = '';
+            capEl.style.bottom = '';
             capEl.style.transformOrigin = '';
           }
         }
@@ -201,16 +215,26 @@ function attachCaptionPill(video, capEl, measurer, captions) {
               : '<span class="words"></span>');
           wordsEl = contentEl.querySelector('.words');
           capEl.classList.toggle('peeky', active.who === 'peeky');
+          measurer.classList.toggle('peeky', active.who === 'peeky');
           mode = wantMode;
         }
 
         const words = active.text.split(' ');
         if (!thinking) {
           // Questions stream word-by-word (reads as spoken). Peeky's replies
-          // pop in all at once.
+          // pop in all at once, unless flagged stream: true.
           let shown;
-          if (active.who === 'peeky') {
+          if (active.who === 'peeky' && !active.stream) {
             shown = words.length;
+          } else if (active.stream) {
+            // Streamed reply: first word lands with the bubble, the rest
+            // follow on a quick beat. Faster than the question reveal.
+            const reveal = Math.min((active.end - active.start) * 0.3, 0.5);
+            const progress = reveal > 0 ? (t - active.start) / reveal : 1;
+            shown = Math.max(
+              1,
+              Math.ceil(Math.min(Math.max(progress, 0), 1) * words.length)
+            );
           } else {
             const reveal = Math.min((active.end - active.start) * 0.55, 1.5);
             const progress = reveal > 0 ? (t - active.start) / reveal : 1;

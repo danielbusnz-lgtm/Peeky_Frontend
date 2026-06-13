@@ -538,7 +538,8 @@ body {
   --text: #ffffff;
   position: absolute;
   left: 50%;
-  top: 7%;
+  top: auto;
+  bottom: calc(8% + 8px);
   transform: translate(-50%, 0);
   overflow: hidden;
   max-width: 86%;
@@ -587,11 +588,19 @@ body {
   color: var(--text);
   will-change: filter;
 }
-/* Peeky's replies: iMessage blue (#0078FE) darkened ~15%, translucent so
-   the glass reads through. Commands keep the neutral dark ink above. */
+/* Peeky's replies: a solid iMessage-blue bubble (#2f90f8, flat — no glass
+   blur, no translucency, no rim), sized down from the question pills.
+   Commands keep the neutral glass top pill. */
 .demo-caption.peeky {
-  --bg-color: rgba(0, 100, 216, 0.7);
-  --highlight: rgba(255, 255, 255, 0.5);
+  --bg-color: #2f90f8;
+  font-size: clamp(11px, 1.5vw, 17px);
+}
+.demo-caption.peeky .glass-filter,
+.demo-caption.peeky .glass-specular {
+  display: none;
+}
+.demo-caption.peeky .glass-overlay {
+  background: #2f90f8;
 }
 /* Streaming words: per-word blur-and-rise. Named cap-word-in because
    word-in is already the hero headline animation. */
@@ -640,6 +649,7 @@ body {
 .demo-caption--sm {
   font-size: clamp(11px, 3.6cqw, 16px);
   top: 5%;
+  bottom: auto;
 }
 /* Hidden twin used to measure the pill's target width each frame. */
 .demo-caption.measure {
@@ -647,6 +657,7 @@ body {
   transition: none !important;
   left: 0 !important;
   top: 0 !important;
+  bottom: auto !important;
   transform: none !important;
   width: auto !important;
   max-width: none !important;
